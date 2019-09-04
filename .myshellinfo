@@ -1,0 +1,4 @@
+MY_PS_U=$
+MY_PS_S=#
+MY_PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/home/nabhiraj:
+{alias}:{realname};
