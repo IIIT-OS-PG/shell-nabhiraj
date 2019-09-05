@@ -233,7 +233,19 @@ void chr_print(char** a){
 		i++;
 	}
 }
-//now our exevp needs to be rechecked
+bool ischarp(char** arr,char c,int n){
+	int i;
+	int j;
+	for(j=0;j<n;j++){
+		int len=strlen(arr[j]);
+		for(i=0;i<len;i++){
+			if(arr[j][i]==c){
+				return true;
+			}
+		}
+	}
+	return false;
+}
 int main(){
 
 	//handeling signals
@@ -360,23 +372,29 @@ int main(){
         	token = strtok(NULL, " "); 
 			
    		}
-		   cmd[j]=0;
+		   cmd[j]=0;//ther are j command in th cmd
 		//-------- token available in cmd ------------------------ 
 		//--------- processing the token--------------------------
 		if(strcmp(cmd[0],"cd")==0){
-			//printf("executing the cd pahse\n");
 			my_cd(cmd);
 		}else if(strcmp(cmd[0],"exit")==0){
 		
 		}else{//normal command
-			exe_fg(cmd,0,1);
+			if(ischarp(cmd,'|',j)){
+				printf("pipe is not handelled yer\n");
+			}else{
+				exe_fg(cmd,0,1);
+			}
 		}
 		//--------------------------------------------------------
 		//---------deallocatin the space-------------------------
+		fflush(stdout);
 		for(j=0;j<arr_num;j++){
+			printf("deleteing and deleting\n");
 			delete cmd[j];
 		}
-		delete cmd;
+			printf("deleting mega");
+			delete cmd;
 		//---------------------------------------------------------  
 	}
 
