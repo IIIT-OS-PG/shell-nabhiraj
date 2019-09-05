@@ -9,6 +9,7 @@
 #include<string>
 #include<time.h>
 #include<termios.h>
+#include<stack>
 #define UP_KEY 1001
 #define DOWN_KEY 1004
 #define RIGHT_KEY 1003
@@ -89,7 +90,12 @@ void fill_param(){
 	//----------------------done reading----------------------
 	
 
-
+	int tempp=strlen(mypaths);
+	mypaths[tempp-1]='\0';
+	tempp=strlen(myps_u);
+	myps_u[tempp-1]='\0';
+	tempp=strlen(myps_s);
+	myps_s[tempp-1]='\0';
 	//-------------setting the enviorment varable-------------
 	setenv("PATH",mypaths,1);	//only this enviorment variable is required to set.
 	setenv("HOME",myhome,1);
@@ -198,12 +204,13 @@ int get_key(){//the key
 	}
 
 }
+//now our exevp needs to be rechecked
 int main(){
 
 	//handeling signals
-	//signal(SIGINT,SIG_IGN);
-	//signal(SIGTSTP,SIG_IGN);
-	//signal(SIGQUIT,SIG_IGN);
+	signal(SIGINT,SIG_IGN);
+	signal(SIGTSTP,SIG_IGN);
+	signal(SIGQUIT,SIG_IGN);
 	//filling the enviorment variables
 	fill_param();
 	char input_buffer[1024];
@@ -212,8 +219,10 @@ int main(){
 		input_buffer[i]='a';
 	}
 	input_buffer[i]='\0';
+	//printf("%s \n %s \n %s \n",mypaths,myps_s,myps_s);
 	while(strcmp(input_buffer,"exit")!=0){
 		//now we will take the input
+		printf("%s ",myps_u);
 		i=0;
 		input_buffer[i]='\0';
 		int a;
@@ -241,6 +250,7 @@ int main(){
 		}
 		input_buffer[i]='\0';
 		//input buffer ready here
+
 	}
 
 	return 0;
