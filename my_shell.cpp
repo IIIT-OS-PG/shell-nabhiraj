@@ -217,15 +217,7 @@ int howmany(char* s,char c){
 	}
 	return count+1;
 }
-/*
-char** mytoken_machine(char* s,char ch){
-	int len=strlen(s);//all the token will be given following len.
-	char* temp=new char[len];
-	int i;
-	while(s[i]!='\0'){
 
-	}
-}*/
 void chr_print(char** a){
 	int i=0;
 	while(a[i]){
@@ -233,7 +225,8 @@ void chr_print(char** a){
 		i++;
 	}
 }
-bool ischarp(char** arr,char c,int n){
+/*
+bool ischarpp(char** arr,char c,int n){
 	int i;
 	int j;
 	for(j=0;j<n;j++){
@@ -246,6 +239,30 @@ bool ischarp(char** arr,char c,int n){
 	}
 	return false;
 }
+int my_str_len(char* arr){
+	int i;
+	i=0;
+	while(arr[i]!='\0'){
+		i++;
+		//printf(" %d ",arr[i]);
+	}
+	//printf(" %d ",arr[i]);
+	printf("\n");
+	return i;
+}*/
+bool is_there(char* arr,char c){
+		int i;
+		int len=strlen(arr);
+		for(i=0;i<len;i++){
+			if(arr[i]==c){
+				return true;
+			}
+		}
+	return false;
+}
+void token_machine(char* s,char** arr,char t){
+	
+}
 int main(){
 
 	//handeling signals
@@ -257,21 +274,28 @@ int main(){
 	vector<string> his;
 	int index=0;
 	char input_buffer[1024];
+	char dup_input_buffer[1024];
 	int i;
+
+
 	for(i=0;i<1023;i++){
 		input_buffer[i]='a';
 	}
 	input_buffer[i]='\0';
-	//printf("%s \n %s \n %s \n",mypaths,myps_s,myps_s);
+	
 	while(strcmp(input_buffer,"exit")!=0){
-		//now we will take the input
 		printf("%s ",myps_u);
 		i=0;
 		input_buffer[i]='\0';
 		int a;
 		int key_count=0;
+
+
+
+
 		while(1){//(a=get_key())!=ENTER_KEY
 			a=get_key();
+			//printf("the value of a recorded is %d\n",a);
 			if(a==TAB_KEY){
 
 			}else if(a==UP_KEY){//goes to previous history
@@ -343,6 +367,13 @@ int main(){
 			}
 		}
 		input_buffer[i]='\0';//this needs to be placed in the cache history stack.
+		//printf("is things working coorectly %s ho yes\n",input_buffer);
+
+
+
+
+
+
 		index=his.size()-1;
 		if(his.empty()||strcmp(input_buffer,his[index].c_str())!=0){
 			his.push_back(input_buffer);
@@ -355,10 +386,19 @@ int main(){
 			exit(1);
 		}
 		//input buffer ready here
+
+
+
+
+
+
+
+
 		//----------------- tokening the stuff---------------
 		int arr_num=howmany(input_buffer,' ');
 		char** cmd=new char*[arr_num];
-		char* token = strtok(input_buffer, " ");
+		strcpy(dup_input_buffer,input_buffer);
+		char* token = strtok(dup_input_buffer, " ");
 		int j;
 		int piece_len=strlen(input_buffer);
 		for(j=0;j<arr_num;j++){
@@ -366,34 +406,54 @@ int main(){
 		}  
 		j=0;
    		while (token != NULL) { 
-        	//printf("%s\n", token); 
 			strcpy(cmd[j],token);
 			j++;
-        	token = strtok(NULL, " "); 
-			
+        	token = strtok(NULL, " "); 	
    		}
 		   cmd[j]=0;//ther are j command in th cmd
-		//-------- token available in cmd ------------------------ 
+		//-------- token available in cmd ------------------------
+
+
+
+
+
+
+
+
 		//--------- processing the token--------------------------
 		if(strcmp(cmd[0],"cd")==0){
 			my_cd(cmd);
 		}else if(strcmp(cmd[0],"exit")==0){
 		
 		}else{//normal command
-			if(ischarp(cmd,'|',j)){
-				printf("pipe is not handelled yer\n");
+			if(is_there(input_buffer,'|')){
+				//printf("yes its detecting\n");
+				//now we have to split the command according to the |
+				int arr_num2=howmany(input_buffer,'|');
+				char** cmd_upper=new char*[arr_num2];
+				char* token2=strtop(dup_input_buffer,"|");
+				int j2;
+				int pliece_len2=strlen(input_buffer);
+				for(j2=0;j2<arr_num2;j2++){
+					cmd_upper[j]=new char[piece_len2];
+				}
+				j2=0;
+				while(token2!=NULL){
+					strcpy(cmd_upper[j2],token2);
+					j2++;
+					token=strtok(NULL,"|");
+				}
+				//cmd[j2]=0;//there are total j2 commands.
 			}else{
 				exe_fg(cmd,0,1);
 			}
 		}
 		//--------------------------------------------------------
 		//---------deallocatin the space-------------------------
-		fflush(stdout);
-		for(j=0;j<arr_num;j++){
-			printf("deleteing and deleting\n");
+		int k;
+		for(k=0;k<j;k++){
 			delete cmd[j];
 		}
-			printf("deleting mega");
 			delete cmd;
 		//---------------------------------------------------------  
 	}
