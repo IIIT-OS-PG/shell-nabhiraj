@@ -242,6 +242,8 @@ int main(){
 	signal(SIGQUIT,SIG_IGN);
 	//filling the enviorment variables
 	fill_param();
+	stack<string> primary_stack;//all the data will be pushed into this stack.
+	stack<string> secondry_stack;//while traversing parsial data will be pushed in this stack.
 	char input_buffer[1024];
 	int i;
 	for(i=0;i<1023;i++){
@@ -255,19 +257,36 @@ int main(){
 		i=0;
 		input_buffer[i]='\0';
 		int a;
+		int key_count=0;
 		while(1){//(a=get_key())!=ENTER_KEY
 			a=get_key();
 			if(a==TAB_KEY){
 
-			}else if(a==UP_KEY){
-
-			}else if(a==DOWN_KEY){
+			}else if(a==UP_KEY){//goes to previous history
+				// empty string poppin segmentation fault and key count recalibration needs to be done.
+				int k;
+				int len=primary_stack.top().size();
+				for(k=0;k<len;k++){
+					input_buffer[k]=primary_stack.top()[k];
+				}
+				input_buffer[k]='\0';
+				secondry_stack.push(primary_stack.top());
+				primary_stack.pop();
+				
+				for(k=0;k<key_count;k++){
+					printf("\b");
+					printf(" ");
+					printf("\b");
+				}
+				printf("%s",input_buffer);
+			}else if(a==DOWN_KEY){//goes to next history
 
 			}else if(a==BACKSP_KEY){
 				printf("\b");
 				printf(" ");
 				printf("\b");
 				i--;
+				key_count--;
 			}else if(a==ENTER_KEY){
 				printf("\n");
 				break;
@@ -275,10 +294,11 @@ int main(){
 				printf("%c",(char)a);
 				input_buffer[i]=(char)a;
 				i++;
+				key_count++;
 			}
 		}
 		input_buffer[i]='\0';//this needs to be placed in the cache history stack.
-
+		primary_stack.push(input_buffer);
 		if(strcmp(input_buffer,"")==0){
 			continue;
 		}
