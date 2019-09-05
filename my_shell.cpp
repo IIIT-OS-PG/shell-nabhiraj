@@ -260,8 +260,36 @@ bool is_there(char* arr,char c){
 		}
 	return false;
 }
-void token_machine(char* s,char** arr,char t){
-	
+char** token_machine(char* s,int* num,char t,bool flag){//return number of token //it will create the space also.
+	char z[2];
+	z[0]=t;
+	z[1]='\0';
+	char dub_buffer[1024];
+	strcpy(dub_buffer,s);
+	//printf("bufferd copyed %s\n",dub_buffer);
+	int arr_num=howmany(s,t);
+	//printf("number of arr_num %d\n",arr_num);
+				char** cmd=new char*[arr_num+1];
+				char* token=strtok(dub_buffer,z);
+				int j;
+				int piece_len=strlen(s);
+				for(j=0;j<arr_num;j++){
+					cmd[j]=new char[piece_len];
+				}
+				j=0;
+				while(token!=NULL){
+					strcpy(cmd[j],token);
+					//printf("printing the vaue of token %s",cmd[j]);
+					j++;
+					token=strtok(NULL,z);
+				}
+				//printf("rturning th valu of j that is %d\n",j);
+				if(flag){
+					cmd[j]=0;
+					j++;
+				}
+				*num=j;
+			return cmd;
 }
 int main(){
 
@@ -427,23 +455,24 @@ int main(){
 		
 		}else{//normal command
 			if(is_there(input_buffer,'|')){
-				//printf("yes its detecting\n");
-				//now we have to split the command according to the |
-				int arr_num2=howmany(input_buffer,'|');
-				char** cmd_upper=new char*[arr_num2];
-				char* token2=strtop(dup_input_buffer,"|");
-				int j2;
-				int pliece_len2=strlen(input_buffer);
-				for(j2=0;j2<arr_num2;j2++){
-					cmd_upper[j]=new char[piece_len2];
+				printf("yes its detecting\n");
+				char** cmd_pipe;
+				int cmd_pipe_len;
+				cmd_pipe=token_machine(input_buffer,&cmd_pipe_len,'|',false);
+				//cmd_pipe[i] comands are there. chr_print(cmd_pipe);
+				char*** cmd_pipe_arr=new char**[cmd_pipe_len];	//
+				int r;
+				for(r=0;r<cmd_pipe_len;r++){
+					int temp;
+					cmd_pipe_arr[r]=token_machine(cmd_pipe[r],&temp,' ',true);
 				}
-				j2=0;
-				while(token2!=NULL){
-					strcpy(cmd_upper[j2],token2);
-					j2++;
-					token=strtok(NULL,"|");
-				}
-				//cmd[j2]=0;//there are total j2 commands.
+				//is this working i dont know
+				/*
+				for(r=0;r<cmd_pipe_len;r++){
+					chr_print(cmd_pipe_arr[r]);
+					printf("\n\n");
+				}*/
+				
 			}else{
 				exe_fg(cmd,0,1);
 			}
