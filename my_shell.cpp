@@ -9,7 +9,7 @@
 #include<string>
 #include<time.h>
 #include<termios.h>
-#include<stack>
+#include<vector>
 #define UP_KEY 1001
 #define DOWN_KEY 1004
 #define RIGHT_KEY 1003
@@ -242,8 +242,8 @@ int main(){
 	signal(SIGQUIT,SIG_IGN);
 	//filling the enviorment variables
 	fill_param();
-	stack<string> primary_stack;//all the data will be pushed into this stack.
-	stack<string> secondry_stack;//while traversing parsial data will be pushed in this stack.
+	vector<string> his;
+	int index=0;
 	char input_buffer[1024];
 	int i;
 	for(i=0;i<1023;i++){
@@ -264,15 +264,14 @@ int main(){
 
 			}else if(a==UP_KEY){//goes to previous history
 				// empty string poppin segmentation fault and key count recalibration needs to be done.
-				if(!primary_stack.empty()){
+				if(index>=0){
 					int k;
-					int len=primary_stack.top().size();
+					//int len=primary_stack.top().size();
+					int len=his[index].size();
 					for(k=0;k<len;k++){
-						input_buffer[k]=primary_stack.top()[k];
+						input_buffer[k]=his[index][k];
 					}
 					input_buffer[k]='\0';
-					secondry_stack.push(primary_stack.top());
-					primary_stack.pop();
 					for(k=0;k<key_count;k++){
 						printf("\b");
 						printf(" ");
@@ -280,20 +279,21 @@ int main(){
 					}
 					printf("%s",input_buffer);
 					key_count=strlen(input_buffer);
-					//printf("up arrow key routine executed\n");
-					//the value of i is not set at correct location.... setting it at correct location.
 					i=key_count;
+					index--;
+					if(index<0){
+						index++;
+					}
 				}
 			}else if(a==DOWN_KEY){//goes to next history
-				if(!secondry_stack.empty()){
+				if(index<his.size()){
 					int k;
-					int len=secondry_stack.top().size();
+					//int len=primary_stack.top().size();
+					int len=his[index].size();
 					for(k=0;k<len;k++){
-						input_buffer[k]=secondry_stack.top()[k];
+						input_buffer[k]=his[index][k];
 					}
 					input_buffer[k]='\0';
-					primary_stack.push(secondry_stack.top());
-					secondry_stack.pop();
 					for(k=0;k<key_count;k++){
 						printf("\b");
 						printf(" ");
@@ -302,6 +302,10 @@ int main(){
 					printf("%s",input_buffer);
 					key_count=strlen(input_buffer);
 					i=key_count;
+					index++;
+					if(index==his.size()){
+						index--;
+					}
 				}
 			}else if(a==BACKSP_KEY){
 				if(key_count>0){
@@ -311,8 +315,11 @@ int main(){
 				i--;
 				key_count--;
 				}
+			}else if(a==LEFT_KEY){// this needs to be handeled in detail.
+				i--;
+				printf("\b");
+				key_count--;
 			}else if(a==ENTER_KEY){
-				
 				printf("\n");
 				//prinf("enter key routine executed");
 				break;
@@ -324,7 +331,11 @@ int main(){
 			}
 		}
 		input_buffer[i]='\0';//this needs to be placed in the cache history stack.
-		primary_stack.push(input_buffer);
+		index=his.size()-1;
+		if(his.empty()||strcmp(input_buffer,his[index].c_str())!=0){
+			his.push_back(input_buffer);
+			index++;
+		}
 		if(strcmp(input_buffer,"")==0){
 			continue;
 		}
