@@ -264,31 +264,57 @@ int main(){
 
 			}else if(a==UP_KEY){//goes to previous history
 				// empty string poppin segmentation fault and key count recalibration needs to be done.
-				int k;
-				int len=primary_stack.top().size();
-				for(k=0;k<len;k++){
-					input_buffer[k]=primary_stack.top()[k];
+				if(!primary_stack.empty()){
+					int k;
+					int len=primary_stack.top().size();
+					for(k=0;k<len;k++){
+						input_buffer[k]=primary_stack.top()[k];
+					}
+					input_buffer[k]='\0';
+					secondry_stack.push(primary_stack.top());
+					primary_stack.pop();
+					for(k=0;k<key_count;k++){
+						printf("\b");
+						printf(" ");
+						printf("\b");
+					}
+					printf("%s",input_buffer);
+					key_count=strlen(input_buffer);
+					//printf("up arrow key routine executed\n");
+					//the value of i is not set at correct location.... setting it at correct location.
+					i=key_count;
 				}
-				input_buffer[k]='\0';
-				secondry_stack.push(primary_stack.top());
-				primary_stack.pop();
-				
-				for(k=0;k<key_count;k++){
-					printf("\b");
-					printf(" ");
-					printf("\b");
-				}
-				printf("%s",input_buffer);
 			}else if(a==DOWN_KEY){//goes to next history
-
+				if(!secondry_stack.empty()){
+					int k;
+					int len=secondry_stack.top().size();
+					for(k=0;k<len;k++){
+						input_buffer[k]=secondry_stack.top()[k];
+					}
+					input_buffer[k]='\0';
+					primary_stack.push(secondry_stack.top());
+					secondry_stack.pop();
+					for(k=0;k<key_count;k++){
+						printf("\b");
+						printf(" ");
+						printf("\b");
+					}
+					printf("%s",input_buffer);
+					key_count=strlen(input_buffer);
+					i=key_count;
+				}
 			}else if(a==BACKSP_KEY){
+				if(key_count>0){
 				printf("\b");
 				printf(" ");
 				printf("\b");
 				i--;
 				key_count--;
+				}
 			}else if(a==ENTER_KEY){
+				
 				printf("\n");
+				//prinf("enter key routine executed");
 				break;
 			}else{//the main condition to be handeled
 				printf("%c",(char)a);
