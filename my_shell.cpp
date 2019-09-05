@@ -135,6 +135,7 @@ int exe_fg(char* argv[],int input_fd,int output_fd){
 		a=execvp(*argv,argv);//this may through erro
 		if(a==-1){
 			printf("error in executing the command\n");
+			exit(1);
 			return -1;
 		}
 	}else{
@@ -204,6 +205,34 @@ int get_key(){//the key
 	}
 
 }
+
+int howmany(char* s,char c){
+	int len=strlen(s);
+	int i;
+	int count=0;
+	for(i=0;i<len;i++){
+		if(s[i]==c){
+			count++;
+		}
+	}
+	return count+1;
+}
+/*
+char** mytoken_machine(char* s,char ch){
+	int len=strlen(s);//all the token will be given following len.
+	char* temp=new char[len];
+	int i;
+	while(s[i]!='\0'){
+
+	}
+}*/
+void chr_print(char** a){
+	int i=0;
+	while(a[i]){
+		printf("%s \n",a[i]);
+		i++;
+	}
+}
 //now our exevp needs to be rechecked
 int main(){
 
@@ -248,9 +277,50 @@ int main(){
 				i++;
 			}
 		}
-		input_buffer[i]='\0';
-		//input buffer ready here
+		input_buffer[i]='\0';//this needs to be placed in the cache history stack.
 
+		if(strcmp(input_buffer,"")==0){
+			continue;
+		}
+		if(strcmp(input_buffer,"exit")==0){
+			exit(1);
+		}
+		//input buffer ready here
+		//----------------- tokening the stuff---------------
+		int arr_num=howmany(input_buffer,' ');
+		char** cmd=new char*[arr_num];
+		char* token = strtok(input_buffer, " ");
+		int j;
+		int piece_len=strlen(input_buffer);
+		for(j=0;j<arr_num;j++){
+			cmd[j]=new char[piece_len];
+		}  
+		j=0;
+   		while (token != NULL) { 
+        	//printf("%s\n", token); 
+			strcpy(cmd[j],token);
+			j++;
+        	token = strtok(NULL, " "); 
+			
+   		}
+		   cmd[j]=0;
+		//-------- token available in cmd ------------------------ 
+		//--------- processing the token--------------------------
+		if(strcmp(cmd[0],"cd")==0){
+			//printf("executing the cd pahse\n");
+			my_cd(cmd);
+		}else if(strcmp(cmd[0],"exit")==0){
+		
+		}else{//normal command
+			exe_fg(cmd,0,1);
+		}
+		//--------------------------------------------------------
+		//---------deallocatin the space-------------------------
+		for(j=0;j<arr_num;j++){
+			delete cmd[j];
+		}
+		delete cmd;
+		//---------------------------------------------------------  
 	}
 
 	return 0;
