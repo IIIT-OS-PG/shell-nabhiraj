@@ -322,7 +322,7 @@ void pipe_handel(char*** d,int l,int f_i,int f_o){
 	ftruncate(f1,0);
     bool flag;
 	lseek(f1,0,SEEK_SET);
-	exe_fg(d[0],0,f1);
+	exe_fg(d[0],f_i,f1);
 	flag=true;
     int i;
     for(i=1;i<l-1;i++){
@@ -340,10 +340,10 @@ void pipe_handel(char*** d,int l,int f_i,int f_o){
 	}
 	if(flag){
 		lseek(f1,0,SEEK_SET);
-		exe_fg(d[l-1],f1,1);
+		exe_fg(d[l-1],f1,f_o);
 	}else{
 		lseek(f2,0,SEEK_SET);
-		exe_fg(d[l-1],f2,1);
+		exe_fg(d[l-1],f2,f_o);
 	}
     close(f1);
     close(f2);
@@ -575,6 +575,7 @@ int main(){
 			//caching redirection................... and setting the input output file discriptor
 			if(is_there(input_buffer,'>')){
 				int g=howmany(input_buffer,'>');
+				g--;
 				if(g==2){
 					append_or_not=true;
 				}else if(g==1){
@@ -589,19 +590,14 @@ int main(){
 						break;
 					}
 				}
-				printf("the file name is %s\n",file_name);
-				//now we have to see if file exist or not if file do not exist we have to create the file.
-				//and also we have to increment the pointer if the append flag is on.
-				/*
-				int cfileexists(const char* filename){
-    				struct stat buffer;
-    				int exist = stat(filename,&buffer);
-    				if(exist == 0)
-        				return 1;
-    				else // -1
-        				return 0;
+				//removing '>>' from input buffer
+				int ii;
+				int input_length=strlen(input_buffer);
+				for(ii=0;ii<input_length;ii++){
+					if(input_buffer[ii]=='>'){
+						input_buffer[ii]='\0';
 					}
-				*/
+				}
 				struct stat buffer;
 				int exist=stat(file_name,&buffer);
 				if(exist!=0){//file do not exist
@@ -635,7 +631,7 @@ int main(){
 				}
 				pipe_handel(cmd_pipe_arr,cmd_pipe_len,input_disc,output_disc);
 			}else{
-				exe_fg(cmd,input_disc,output_disc);
+				exe_fg(cmd,input_disc,output_disc);//most normal condition
 			}
 
 				if(output_disc!=1){
