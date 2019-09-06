@@ -9,7 +9,9 @@
 #include<string>
 #include<time.h>
 #include<termios.h>
-#include<vector>
+#include<vector>  
+#include <sys/stat.h>
+#include <fcntl.h>
 #define UP_KEY 1001
 #define DOWN_KEY 1004
 #define RIGHT_KEY 1003
@@ -127,7 +129,7 @@ int exe_fg(char* argv[],int input_fd,int output_fd){
 			printf("error in hand fd");
 			return -1;
 		}
-		dup2(output_fd,1);
+		a=dup2(output_fd,1);
 		if(a==-1){
 			printf("error in hand fd 2");
 			return -1;
@@ -143,7 +145,29 @@ int exe_fg(char* argv[],int input_fd,int output_fd){
 	}
 	return 0;
 }
-
+/*
+int exe_fgp(char* argv[],int input_fd,int output_fd){
+		int a;
+		a=dup2(0,input_fd);
+		if(a==-1){
+			printf("error in hand fd");
+			return -1;
+		}
+		dup2(1,output_fd);
+		if(a==-1){
+			printf("error in hand fd 2");
+			return -1;
+		}
+		a=execvp(*argv,argv);//this may through erro
+		if(a==-1){
+			printf("error in executing the command\n");
+			exit(1);
+			return -1;
+		}
+	
+	return 0;
+}
+*/
 
 //required to change he directory.
 int my_cd(char** p){
@@ -291,6 +315,96 @@ char** token_machine(char* s,int* num,char t,bool flag){//return number of token
 				*num=j;
 			return cmd;
 }
+void pipe_handel(char*** d,int l,int f_i,int f_o){
+	int f1=open(".marvel",O_RDWR|O_CREAT,0777);
+	int f2=open(".dc",O_RDWR|O_CREAT,0777);
+	ftruncate(f2,0);
+	ftruncate(f1,0);
+    bool flag;
+	lseek(f1,0,SEEK_SET);
+	exe_fg(d[0],0,f1);
+	flag=true;
+    int i;
+    for(i=1;i<l-1;i++){
+		if(flag){
+			ftruncate(f2,0);
+			lseek(f1,0,SEEK_SET);
+			exe_fg(d[i],f1,f2);
+			flag=false;
+		}else{
+			ftruncate(f1,0);
+			lseek(f2,0,SEEK_SET);
+			exe_fg(d[i],f2,f1);
+			flag=true;
+		}
+	}
+	if(flag){
+		lseek(f1,0,SEEK_SET);
+		exe_fg(d[l-1],f1,1);
+	}else{
+		lseek(f2,0,SEEK_SET);
+		exe_fg(d[l-1],f2,1);
+	}
+    close(f1);
+    close(f2);
+	int w=remove(".marvel");
+	if(w==-1){
+		printf("error in deleting the file 1\n");
+	}
+	w=remove(".dc");
+	if(w==-1){
+		printf("error in deleting the file 2\n");
+	}
+}
+//exe_fgp(d[c],a[0],a[1]);
+//pipe_handel(cmd_pipe_arr,cmd_pipe_len,0,0,1,-1);
+/*
+void pipe_handel(char*** d,int l,int f_i,int f_o){
+	int** pipe_arr=new int*[l];
+	int i;
+	for(i=0;i<l;i++){
+		pipe_arr[i]=new int[2];
+		pipe(pipe_arr[i]);
+	}
+	for(i=0;i<l;i++){
+		int t=fork();
+		if(t==0){//child process
+			if(i==0){
+				dup2(0,f_i);
+				dup2(1,pipe_arr[0][1]);
+			}
+			if(i!=0&&i!=l-1){
+				dup2(0,pipe_arr[i-1][1]);
+				dup2(pipe_arr[i][0],pipe_arr[i-1][1]);
+				dup2(1,pipe_arr[i][1]);
+			}
+			if(i==l-1){
+				dup2(0,pipe_arr[i-1][1]);
+				dup2(pipe_arr[i][0],pipe_arr[i-1][1]);
+				dup2(1,f_o);
+			}
+			//closing all the other pipe
+			int j;
+			for(j=0;j<l;j++){
+				//if(j!=i){
+					close(pipe_arr[j][0]);
+					close(pipe_arr[j][1]);
+				//}
+			}
+			int a=execvp(d[i][0],d[i]);
+		}else{//parent process
+
+		}
+	}
+	for(i=0;i<l;i++){
+		wait(NULL);	
+	}
+	int j;
+	for(j=0;j<l;j++){
+		close(pipe_arr[j][0]);
+		close(pipe_arr[j][1]);
+	}
+}*/
 int main(){
 
 	//handeling signals
@@ -455,7 +569,6 @@ int main(){
 		
 		}else{//normal command
 			if(is_there(input_buffer,'|')){
-				printf("yes its detecting\n");
 				char** cmd_pipe;
 				int cmd_pipe_len;
 				cmd_pipe=token_machine(input_buffer,&cmd_pipe_len,'|',false);
@@ -466,13 +579,7 @@ int main(){
 					int temp;
 					cmd_pipe_arr[r]=token_machine(cmd_pipe[r],&temp,' ',true);
 				}
-				//is this working i dont know
-				/*
-				for(r=0;r<cmd_pipe_len;r++){
-					chr_print(cmd_pipe_arr[r]);
-					printf("\n\n");
-				}*/
-				
+				pipe_handel(cmd_pipe_arr,cmd_pipe_len,0,1);
 			}else{
 				exe_fg(cmd,0,1);
 			}
