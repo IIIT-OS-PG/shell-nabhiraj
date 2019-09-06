@@ -625,11 +625,29 @@ int main(){
 				cmd_pipe=token_machine(input_buffer,&cmd_pipe_len,'|',false);
 				char*** cmd_pipe_arr=new char**[cmd_pipe_len];
 				int r;
+				int* temp=new int[cmd_pipe_len];
 				for(r=0;r<cmd_pipe_len;r++){
-					int temp;
-					cmd_pipe_arr[r]=token_machine(cmd_pipe[r],&temp,' ',true);
+					cmd_pipe_arr[r]=token_machine(cmd_pipe[r],&temp[r],' ',true);
 				}
 				pipe_handel(cmd_pipe_arr,cmd_pipe_len,input_disc,output_disc);
+				//now we should handel the memory freeing.
+				printf("clearing cmd_pipe indiviual element\n");
+				for(r=0;r<cmd_pipe_len;r++){
+					delete cmd_pipe[r];
+				}
+				printf("clearing cmd_pipe global element\n");
+				delete cmd_pipe;
+				printf("looping through cmd_pipe array\n");
+				for(r=0;r<cmd_pipe_len;r++){
+					printf("loop inside the loop\n");
+					for(int r2=0;r2<temp[r];r2++){
+						delete cmd_pipe_arr[r][r2];
+					}
+					printf("internal loop finised\n");
+					cmd_pipe_arr[r];
+				}
+				printf("deleting the last loop\n");
+				delete cmd_pipe_arr;
 			}else{
 				exe_fg(cmd,input_disc,output_disc);//most normal condition
 			}
