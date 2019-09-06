@@ -568,21 +568,81 @@ int main(){
 		}else if(strcmp(cmd[0],"exit")==0){
 		
 		}else{//normal command
+			
+			int input_disc=0;
+			int output_disc;
+			bool append_or_not; //true for append, false for not append. 
+			//caching redirection................... and setting the input output file discriptor
+			if(is_there(input_buffer,'>')){
+				int g=howmany(input_buffer,'>');
+				if(g==2){
+					append_or_not=true;
+				}else if(g==1){
+					append_or_not=false;
+				}
+				//there are j command in cmd array
+				char* file_name=cmd[j-1];
+				int y;
+				for(y=0;y<j;y++){
+					if(is_there(cmd[y],'>')){
+						cmd[y]=0;
+						break;
+					}
+				}
+				printf("the file name is %s\n",file_name);
+				//now we have to see if file exist or not if file do not exist we have to create the file.
+				//and also we have to increment the pointer if the append flag is on.
+				/*
+				int cfileexists(const char* filename){
+    				struct stat buffer;
+    				int exist = stat(filename,&buffer);
+    				if(exist == 0)
+        				return 1;
+    				else // -1
+        				return 0;
+					}
+				*/
+				struct stat buffer;
+				int exist=stat(file_name,&buffer);
+				if(exist!=0){//file do not exist
+					if(append_or_not){
+						printf("file does not exist not a valid command\n");
+						continue;	
+					}
+					output_disc=open(file_name,O_WRONLY|O_CREAT,0777);
+				}else{
+					if(append_or_not){
+						output_disc=open(file_name,O_WRONLY|O_APPEND,0777);
+					}else{
+						output_disc=open(file_name,O_WRONLY,0777);
+						//we hav to trucate th file
+						ftruncate(output_disc,0);
+					}
+				}
+			}else{
+				output_disc=1;
+			}
+
 			if(is_there(input_buffer,'|')){
 				char** cmd_pipe;
 				int cmd_pipe_len;
 				cmd_pipe=token_machine(input_buffer,&cmd_pipe_len,'|',false);
-				//cmd_pipe[i] comands are there. chr_print(cmd_pipe);
-				char*** cmd_pipe_arr=new char**[cmd_pipe_len];	//
+				char*** cmd_pipe_arr=new char**[cmd_pipe_len];
 				int r;
 				for(r=0;r<cmd_pipe_len;r++){
 					int temp;
 					cmd_pipe_arr[r]=token_machine(cmd_pipe[r],&temp,' ',true);
 				}
-				pipe_handel(cmd_pipe_arr,cmd_pipe_len,0,1);
+				pipe_handel(cmd_pipe_arr,cmd_pipe_len,input_disc,output_disc);
 			}else{
-				exe_fg(cmd,0,1);
+				exe_fg(cmd,input_disc,output_disc);
 			}
+
+				if(output_disc!=1){
+					close(output_disc);
+				}
+
+
 		}
 		//--------------------------------------------------------
 		//---------deallocatin the space-------------------------
