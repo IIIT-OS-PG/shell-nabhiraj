@@ -123,6 +123,10 @@ int exe_fg(char* argv[],int input_fd,int output_fd){
 	pid_t p=fork();
 	if(p==0){//the code path of the child process.
 		//now learn dup first.
+		//we have to reactivate the signals here....
+		signal(SIGINT,SIG_DFL);
+		signal(SIGTSTP,SIG_DFL);
+		signal(SIGQUIT,SIG_DFL);
 		int a;
 		a=dup2(input_fd,0);
 		if(a==-1){
@@ -413,13 +417,12 @@ int main(){
 	signal(SIGQUIT,SIG_IGN);
 	//filling the enviorment variables
 	fill_param();
+	int script_fd=-987; // file discriptor for scripting file. and its default value.
 	vector<string> his;
 	int index=0;
 	char input_buffer[1024];
 	char dup_input_buffer[1024];
 	int i;
-
-
 	for(i=0;i<1023;i++){
 		input_buffer[i]='a';
 	}
@@ -428,6 +431,7 @@ int main(){
 	while(strcmp(input_buffer,"exit")!=0){
 		printf("%s ",myps_u);
 		i=0;
+		int max=0;
 		input_buffer[i]='\0';
 		int a;
 		int key_count=0;
@@ -487,16 +491,25 @@ int main(){
 				}
 			}else if(a==BACKSP_KEY){
 				if(key_count>0){
-				printf("\b");
-				printf(" ");
-				printf("\b");
-				i--;
-				key_count--;
+					printf("\b");
+					printf(" ");
+					printf("\b");
+					i--;
+					key_count--;
+					max--;
 				}
 			}else if(a==LEFT_KEY){// this needs to be handeled in detail.
+			if(key_count>0){
 				i--;
 				printf("\b");
 				key_count--;
+			}
+			}else if(a==RIGHT_KEY){
+				if(i<max){
+					printf("%c",input_buffer[i]);
+					i++;
+					key_count++;
+				}
 			}else if(a==ENTER_KEY){
 				printf("\n");
 				//prinf("enter key routine executed");
@@ -506,6 +519,7 @@ int main(){
 				input_buffer[i]=(char)a;
 				i++;
 				key_count++;
+				max++;
 			}
 		}
 		input_buffer[i]='\0';//this needs to be placed in the cache history stack.
@@ -530,7 +544,7 @@ int main(){
 		//input buffer ready here
 
 
-
+		
 
 
 
@@ -556,17 +570,29 @@ int main(){
 		//-------- token available in cmd ------------------------
 
 
-
-
-
-
-
-
+	
 		//--------- processing the token--------------------------
 		if(strcmp(cmd[0],"cd")==0){
 			my_cd(cmd);
+		}else if((j==2)&&(strcmp(cmd[0],"record")==0)&&(strcmp(cmd[1],"start")==0)){
+			if(script_fd==-987){
+				script_fd=open("recode_file_2019201062.txt",O_RDWR|O_CREAT|O_APPEND,0777);
+				if(script_fd==-1){
+					printf("error in opening scripting file");
+					script_fd=-987;
+				}
+			}
+
+		}else if((j==2)&&(strcmp(cmd[0],"record")==0)&&(strcmp(cmd[1],"stop")==0)){
+			if(script_fd!=-987){
+				close(script_fd);
+				script_fd=-987;
+			}
 		}else if(strcmp(cmd[0],"exit")==0){
-		
+			if(script_fd!=-987){
+				close(script_fd);
+				script_fd=-987;
+			}
 		}else{//normal command
 			
 			int input_disc=0;
@@ -631,22 +657,16 @@ int main(){
 				}
 				pipe_handel(cmd_pipe_arr,cmd_pipe_len,input_disc,output_disc);
 				//now we should handel the memory freeing.
-				printf("clearing cmd_pipe indiviual element\n");
 				for(r=0;r<cmd_pipe_len;r++){
 					delete cmd_pipe[r];
 				}
-				printf("clearing cmd_pipe global element\n");
 				delete cmd_pipe;
-				printf("looping through cmd_pipe array\n");
 				for(r=0;r<cmd_pipe_len;r++){
-					printf("loop inside the loop\n");
 					for(int r2=0;r2<temp[r];r2++){
 						delete cmd_pipe_arr[r][r2];
 					}
-					printf("internal loop finised\n");
 					cmd_pipe_arr[r];
 				}
-				printf("deleting the last loop\n");
 				delete cmd_pipe_arr;
 			}else{
 				exe_fg(cmd,input_disc,output_disc);//most normal condition
