@@ -12,6 +12,7 @@
 #include<vector>  
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <map>
 #define UP_KEY 1001
 #define DOWN_KEY 1004
 #define RIGHT_KEY 1003
@@ -409,6 +410,39 @@ void pipe_handel(char*** d,int l,int f_i,int f_o){
 		close(pipe_arr[j][1]);
 	}
 }*/
+
+int ifcointain(char* b,char* a){//if  a is in b
+	int al=strlen(a);
+	int bl=strlen(b);
+	int i,j;
+	for(i=0;i<=bl-al;i++){
+		for(j=0;j<al;j++){
+			if(b[i+j]!=a[j]){
+				break;
+			}
+		}
+		if(j==al){
+			return i;
+		}
+	}
+	return -1;
+}
+void insert_string(char* s,char* j,char* t){//if string j is present replace it with string t
+        int start_index;
+        int sl=strlen(s);
+        int sj=strlen(j);//string to be replaced
+        int st=strlen(t);//the new string.
+        while((start_index=ifcointain(s,j))!=-1){
+                s[start_index]='\0';
+                char* temp=s+start_index+sj;
+                int l=strlen(temp);
+                char* temp2=new char[l+2];
+                strcpy(temp2,temp);
+                strcat(s,t);
+                strcat(s,temp2);
+                delete[] temp2;
+        }
+}
 int main(){
 
 	//handeling signals
@@ -417,6 +451,7 @@ int main(){
 	signal(SIGQUIT,SIG_IGN);
 	//filling the enviorment variables
 	fill_param();
+
 	int script_fd=-987; // file discriptor for scripting file. and its default value.
 	vector<string> his;
 	int index=0;
@@ -553,7 +588,7 @@ int main(){
 		//----------------- tokening the stuff---------------
 		int arr_num=howmany(input_buffer,' ');
 		char** cmd=new char*[arr_num];
-		strcpy(dup_input_buffer,input_buffer);
+		strcpy(dup_input_buffer,input_buffer); //copying of input buffr to duplicate buffer is done here.
 		char* token = strtok(dup_input_buffer, " ");
 		int j;
 		int piece_len=strlen(input_buffer);
