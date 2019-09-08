@@ -463,6 +463,7 @@ int main(){
 	allias_map["$HOSTNAME"]=myhostname;
 	allias_map["$PS1"]=myps_u;
 	allias_map["$PWD"]=pwd;
+	allias_map["~"]=myhome;
 	int script_fd=-987; // file discriptor for scripting file. and its default value.
 	vector<string> his;
 	int index=0;
@@ -688,6 +689,7 @@ int main(){
 			}else if(strcmp(enev_temp[0],"HOME")==0){
 				myhome=enev_temp[1];
 				allias_map["$HOME"]=enev_temp[1];
+				allias_map["~"]=myhome;
 			}else if(strcmp(enev_temp[0],"USER")==0){
 				myuser=enev_temp[1];
 				allias_map["$USER"]=enev_temp[1];
