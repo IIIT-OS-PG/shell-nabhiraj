@@ -37,7 +37,7 @@ char* myps_u;//will be taken from file.
 int myps_len;
 char* myps_s;//will be taken from file.
 char* pwd;
-
+map<string,string> allias_map;
 void fill_param(){
 	//PS for u and s and path is already written in the file.
 	//username hostname and myhome needs to be read from the system.
@@ -193,6 +193,7 @@ int my_cd(char** p){
         }else{
                 setenv("PWD",pw,1);
 				strcpy(pwd,pw);
+				allias_map["$PWD"]=pwd;
 		free(pw);
         }
 	return 0;
@@ -455,7 +456,6 @@ int main(){
 	signal(SIGQUIT,SIG_IGN);
 	//filling the enviorment variables
 	fill_param();
-	map<string,string> allias_map;//command of allias loooks like alias a = b
 	//inserting the enviorment variabls.
 	allias_map["$PATH"]=mypaths;
 	allias_map["$HOME"]=myhome;
@@ -629,13 +629,21 @@ int main(){
    		}
 		   cmd[j]=0;//ther are j command in th cmd
 		//-------- token available in cmd ------------------------
-
-
-	
+		//printf("control must be coming till here\n");
+		bool to_deloc=false;
+		int totalenv_len;
+		char** enev_temp;
+		enev_temp=NULL;
+		if(is_there(cmd[0],'=')){
+			enev_temp=token_machine(input_buffer,&totalenv_len,'=',false);
+			to_deloc=true;
+		//	printf("delocation bit set to 1\n");
+		}
 		//--------- processing the token--------------------------
 		if(strcmp(cmd[0],"cd")==0){
 			my_cd(cmd);
 		}else if((j==2)&&(strcmp(cmd[0],"record")==0)&&(strcmp(cmd[1],"start")==0)){
+			//printf("inside the record condition\n");
 			if(script_fd==-987){
 				script_fd=open("recode_file_2019201062.txt",O_RDWR|O_CREAT|O_APPEND,0777);
 				if(script_fd==-1){
@@ -645,16 +653,19 @@ int main(){
 			}
 
 		}else if((j==2)&&(strcmp(cmd[0],"record")==0)&&(strcmp(cmd[1],"stop")==0)){
+			//printf("insidee the record stop condtion\n");
 			if(script_fd!=-987){
 				close(script_fd);
 				script_fd=-987;
 			}
 		}else if(strcmp(cmd[0],"exit")==0){
+			//printf("inside the record stop condition\n");
 			if(script_fd!=-987){
 				close(script_fd);
 				script_fd=-987;
 			}
 		}else if(strcmp(cmd[0],"alias")==0){//this is the allias routine
+			//printf("inside the alias condition\n");
 			int alaias_len;
 			char** alias_arr=token_machine(cmd[1],&alaias_len,'=',false);
 			allias_map[alias_arr[0]]=alias_arr[1];
@@ -664,8 +675,41 @@ int main(){
 				delete alias_arr[i];
 			}
 			delete alias_arr;
+		}else if((j==1)&&(enev_temp!=NULL)&&(strcmp(enev_temp[0],"PATH")==0||strcmp(enev_temp[0],"HOME")==0||strcmp(enev_temp[0],"USER")==0||strcmp(enev_temp[0],"HOSTNAME")==0||strcmp(enev_temp[0],"PS1")==0||strcmp(enev_temp[0],"PWD")==0)){
+			//printf("inside the enviorment variable condition\n");
+			//int totalenv_len;
+			//char** enev_temp=token_machine(input_buffer,&totalenv_len,'=',false);
+			//allias_map[enev_temp[0]]=enev_temp[1];
+			setenv(enev_temp[0],enev_temp[1],1);
+			//printf("the value of enev_temp[1] is %s %s",enev_temp[0],enev_temp[1]);
+			if(strcmp(enev_temp[0],"PATH")==0){
+				mypaths=enev_temp[1];	
+				allias_map["$PATH"]=enev_temp[1];
+			}else if(strcmp(enev_temp[0],"HOME")==0){
+				myhome=enev_temp[1];
+				allias_map["$HOME"]=enev_temp[1];
+			}else if(strcmp(enev_temp[0],"USER")==0){
+				myuser=enev_temp[1];
+				allias_map["$USER"]=enev_temp[1];
+			}else if(strcmp(enev_temp[0],"HOSTNAMEE")==0){
+				myhostname=enev_temp[1];
+				allias_map["$HOSTNAME"]=enev_temp[1];
+			}else if(strcmp(enev_temp[0],"PS1")==0){
+				myps_u=enev_temp[1];
+				allias_map["$PS1"]=enev_temp[1];
+			}else if(strcmp(enev_temp[0],"PWD")==0){
+				//pwd=enev_temp[1];
+				allias_map["$PWD"]=enev_temp[1];
+			}else{
+				printf("this condition is should not occur\n");
+			}
+			//int i;
+			//for(i=0;i<totalenv_len;i++){
+			//	delete enev_temp[i];
+			//}
+			//delete enev_temp;
 		}else{//normal command
-			
+			//printf("inside the normal condition\n");
 			int input_disc=0;
 			int output_disc;
 			bool append_or_not; //true for append, false for not append. 
@@ -715,8 +759,9 @@ int main(){
 			}else{
 				output_disc=1;
 			}
-
+			//printf("redirection calculated\n");
 			if(is_there(input_buffer,'|')){
+			//	printf("dealing with pipe\n");
 				char** cmd_pipe;
 				int cmd_pipe_len;
 				cmd_pipe=token_machine(input_buffer,&cmd_pipe_len,'|',false);
@@ -740,10 +785,12 @@ int main(){
 				}
 				delete cmd_pipe_arr;
 			}else{
+			//	printf("no need to deal with pipe\n");
 				exe_fg(cmd,input_disc,output_disc);//most normal condition
 			}
 
 				if(output_disc!=1){
+			//		printf("closing the output disc\n");
 					close(output_disc);
 				}
 
@@ -751,12 +798,29 @@ int main(){
 		}
 		//--------------------------------------------------------
 		//---------deallocatin the space-------------------------
+		//printf("deallocation old space\n");
 		int k;
 		for(k=0;k<j;k++){
 			delete cmd[j];
 		}
 			delete cmd;
 		//---------------------------------------------------------  
+		//int i;
+			//for(i=0;i<totalenv_len;i++){
+			//	delete enev_temp[i];
+			//}
+			//delete enev_temp;
+			//printf("deallocation new shit\n");
+		if(to_deloc){
+			//printf("deallocating space\n");
+			to_deloc=false;
+			//printf("deallocation bit set back\n");
+			int i;
+			for(i=0;i<totalenv_len;i++){
+				delete enev_temp[i];
+			}
+			delete enev_temp;
+		}
 	}
 
 	return 0;
