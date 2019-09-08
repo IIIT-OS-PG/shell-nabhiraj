@@ -36,11 +36,13 @@ int host_name_len;
 char* myps_u;//will be taken from file.
 int myps_len;
 char* myps_s;//will be taken from file.
+char* pwd;
 
 void fill_param(){
 	//PS for u and s and path is already written in the file.
 	//username hostname and myhome needs to be read from the system.
 	//------------------------------------- taking data from the systems ------------------------------
+	pwd=(char*)malloc(1024*sizeof(char));
 	//----- reading host name------------------------
 	host_name_len=100;
 	myhostname=(char*)malloc((host_name_len+1)*sizeof(char));
@@ -110,6 +112,7 @@ void fill_param(){
 		printf("error in reading present working directory\n");
 		free(p);
 	}else{
+		strcpy(pwd,p);
 		setenv("PWD",p,1);
 		free(p);
 	}
@@ -189,6 +192,7 @@ int my_cd(char** p){
 		free(pw);
         }else{
                 setenv("PWD",pw,1);
+				strcpy(pwd,pw);
 		free(pw);
         }
 	return 0;
@@ -452,6 +456,13 @@ int main(){
 	//filling the enviorment variables
 	fill_param();
 	map<string,string> allias_map;//command of allias loooks like alias a = b
+	//inserting the enviorment variabls.
+	allias_map["$PATH"]=mypaths;
+	allias_map["$HOME"]=myhome;
+	allias_map["$USER"]=myuser;
+	allias_map["$HOSTNAME"]=myhostname;
+	allias_map["$PS1"]=myps_u;
+	allias_map["$PWD"]=pwd;
 	int script_fd=-987; // file discriptor for scripting file. and its default value.
 	vector<string> his;
 	int index=0;
