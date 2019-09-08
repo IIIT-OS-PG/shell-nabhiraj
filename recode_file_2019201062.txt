@@ -1,0 +1,12 @@
+lscd ..record stopls
+cd ..
+ls
+cd ..
+ls
+cd ..
+ls
+cd ..
+top
+record stop
+ls
+record stop

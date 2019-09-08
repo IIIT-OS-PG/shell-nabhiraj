@@ -628,6 +628,7 @@ int main(){
 			delete[] value_c;
 		}
 		//----------------- tokening the stuff---------------
+		int buf_len=strlen(input_buffer);//length of the input buffer
 		int arr_num=howmany(input_buffer,' ');
 		char** cmd=new char*[arr_num];
 		strcpy(dup_input_buffer,input_buffer); //copying of input buffr to duplicate buffer is done here.
@@ -654,6 +655,18 @@ int main(){
 			enev_temp=token_machine(input_buffer,&totalenv_len,'=',false);
 			to_deloc=true;
 		//	printf("delocation bit set to 1\n");
+		}
+
+		//if(strcmp(input_buffer,"history")==0){
+		//	strcpy(input_buffer,"cat ");
+		//}
+		if(script_fd!=-987){
+			char* buf=new char[buf_len];
+			strcpy(buf,input_buffer);
+			write(script_fd,buf,buf_len);
+			char c='\n';
+			write(script_fd,&c,1);
+			delete[] buf;
 		}
 		//--------- processing the token--------------------------
 		if(strcmp(cmd[0],"cd")==0){
