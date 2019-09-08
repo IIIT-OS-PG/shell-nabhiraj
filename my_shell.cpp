@@ -712,21 +712,29 @@ int main(){
 			setenv(enev_temp[0],enev_temp[1],1);
 			//printf("the value of enev_temp[1] is %s %s",enev_temp[0],enev_temp[1]);
 			if(strcmp(enev_temp[0],"PATH")==0){
-				mypaths=enev_temp[1];	
+				//mypaths=enev_temp[1];
+				strcpy(mypaths,enev_temp[1]);	
 				allias_map["$PATH"]=enev_temp[1];
 			}else if(strcmp(enev_temp[0],"HOME")==0){
-				myhome=enev_temp[1];
+				//myhome=enev_temp[1];
+				strcpy(myhome,enev_temp[1]);
 				allias_map["$HOME"]=enev_temp[1];
 				allias_map["~"]=myhome;
 			}else if(strcmp(enev_temp[0],"USER")==0){
-				myuser=enev_temp[1];
+				//myuser=enev_temp[1];
+				strcpy(myuser,enev_temp[1]);
 				allias_map["$USER"]=enev_temp[1];
-			}else if(strcmp(enev_temp[0],"HOSTNAMEE")==0){
-				myhostname=enev_temp[1];
+			}else if(strcmp(enev_temp[0],"HOSTNAME")==0){
+				//myhostname=enev_temp[1];
+				strcpy(myhostname,enev_temp[1]);
 				allias_map["$HOSTNAME"]=enev_temp[1];
 			}else if(strcmp(enev_temp[0],"PS1")==0){
-				myps_u=enev_temp[1];
+				//printf("the value of enev_temp is %s\n",enev_temp[1]);
+				//printf("the value of enev_temp is %s\n",myps_u);
 				allias_map["$PS1"]=enev_temp[1];
+				//myps_u=enev_temp[1];
+				strcpy(myps_u,enev_temp[1]);				
+				//printf("the value of enev_temp is %s\n",allias_map["$PS1"]);
 			}else if(strcmp(enev_temp[0],"PWD")==0){
 				//pwd=enev_temp[1];
 				allias_map["$PWD"]=enev_temp[1];
