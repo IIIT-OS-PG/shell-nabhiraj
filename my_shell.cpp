@@ -451,7 +451,7 @@ int main(){
 	signal(SIGQUIT,SIG_IGN);
 	//filling the enviorment variables
 	fill_param();
-
+	map<string,string> allias_map;//command of allias loooks like alias a = b
 	int script_fd=-987; // file discriptor for scripting file. and its default value.
 	vector<string> his;
 	int index=0;
@@ -577,14 +577,29 @@ int main(){
 			exit(1);
 		}
 		//input buffer ready here
-
-
-		
-
-
-
-
-
+		//here we will do aliasing and all.
+		map<string,string>::iterator itr;
+		for(itr=allias_map.begin();itr!=allias_map.end();itr++){
+			string key=itr->first;
+			int len_k=key.size();
+			string value=itr->second;
+			int len_v=value.size();
+			int i;
+			char* key_c=new char[len_k+1];
+			char* value_c=new char[len_v+1];
+			for(i=0;i<len_k;i++){
+				key_c[i]=key[i];
+			}
+			key_c[i]='\0';
+			for(i=0;i<len_v;i++){
+				value_c[i]=value[i];
+			}
+			value_c[i]='\0';
+			insert_string(input_buffer,key_c,value_c);
+			//deallocating the memory
+			delete[] key_c;
+			delete[] value_c;
+		}
 		//----------------- tokening the stuff---------------
 		int arr_num=howmany(input_buffer,' ');
 		char** cmd=new char*[arr_num];
@@ -628,6 +643,16 @@ int main(){
 				close(script_fd);
 				script_fd=-987;
 			}
+		}else if(strcmp(cmd[0],"alias")==0){//this is the allias routine
+			int alaias_len;
+			char** alias_arr=token_machine(cmd[1],&alaias_len,'=',false);
+			allias_map[alias_arr[0]]=alias_arr[1];
+			//deallocatin the memory.
+			int i;
+			for(i=0;i<alaias_len;i++){
+				delete alias_arr[i];
+			}
+			delete alias_arr;
 		}else{//normal command
 			
 			int input_disc=0;
