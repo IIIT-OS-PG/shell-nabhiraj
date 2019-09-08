@@ -448,6 +448,16 @@ void insert_string(char* s,char* j,char* t){//if string j is present replace it 
                 delete[] temp2;
         }
 }
+bool only_single(char* s,char ss){
+	int i;
+	int len=strlen(s);
+	for(i=0;i<len;i++){
+		if(s[i]!=ss){
+			return false;
+		}
+	}
+	return true;
+}
 int main(){
 
 	//handeling signals
@@ -467,6 +477,7 @@ int main(){
 	int script_fd=-987; // file discriptor for scripting file. and its default value.
 	vector<string> his;
 	int index=0;
+	bool first_time=false;
 	char input_buffer[1024];
 	char dup_input_buffer[1024];
 	int i;
@@ -493,7 +504,7 @@ int main(){
 
 			}else if(a==UP_KEY){//goes to previous history
 				// empty string poppin segmentation fault and key count recalibration needs to be done.
-				if(index>=0){
+				if(index>=0&&first_time){
 					int k;
 					//int len=primary_stack.top().size();
 					int len=his[index].size();
@@ -579,8 +590,12 @@ int main(){
 
 		index=his.size()-1;
 		if(his.empty()||strcmp(input_buffer,his[index].c_str())!=0){
-			his.push_back(input_buffer);
-			index++;
+			if(!only_single(input_buffer,' ')){
+				his.push_back(input_buffer);
+				index++;
+			}else{
+				continue;
+			}
 		}
 		if(strcmp(input_buffer,"")==0){
 			continue;
@@ -823,6 +838,7 @@ int main(){
 			}
 			delete enev_temp;
 		}
+		first_time=true;
 	}
 
 	return 0;
