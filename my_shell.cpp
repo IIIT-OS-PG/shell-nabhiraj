@@ -38,6 +38,7 @@ int myps_len;
 char* myps_s;//will be taken from file.
 char* pwd;
 map<string,string> allias_map;
+vector<string> his;
 void fill_param(){
 	//PS for u and s and path is already written in the file.
 	//username hostname and myhome needs to be read from the system.
@@ -142,17 +143,57 @@ int exe_fg(char* argv[],int input_fd,int output_fd){
 			printf("error in hand fd 2");
 			return -1;
 		}
-		a=execvp(*argv,argv);//this may through erro
-		if(a==-1){
-			printf("error in executing the command\n");
-			exit(1);
-			return -1;
+		if(strcmp(argv[0],"history")==0){ //if error comes remove this if condition.
+			int i;
+			for(i=0;i<his.size();i++){
+				printf("%d %s\n",i+1,his[i].c_str());
+			}
+			exit(0);
+		}else{
+			a=execvp(*argv,argv);//this may through erro
+			if(a==-1){
+				printf("error in executing the command\n");
+				exit(1);
+				return -1;
+			}
 		}
 	}else{
 		wait(NULL);
 	}
 	return 0;
 }
+/*
+//lets check whether it works or not.
+int history(char* argv[],int input_fd,int output_fd,vector<string> myv){
+	pid_t p=fork();
+	if(p==0){//the code path of the child process.
+		//now learn dup first.
+		//we have to reactivate the signals here....
+		signal(SIGINT,SIG_DFL);
+		signal(SIGTSTP,SIG_DFL);
+		signal(SIGQUIT,SIG_DFL);
+		int a;
+		a=dup2(input_fd,0);
+		if(a==-1){
+			printf("error in hand fd");
+			return -1;
+		}
+		a=dup2(output_fd,1);
+		if(a==-1){
+			printf("error in hand fd 2");
+			return -1;
+		}
+		//here i will print the vector.
+		int i;
+		for(i=0;i<myv.size();i++){
+			printf("%d %s\n",i+1,myv[i].c_str());
+		}
+		exit(0);
+	}else{
+		wait(NULL);
+	}
+	return 0;
+}*/
 /*
 int exe_fgp(char* argv[],int input_fd,int output_fd){
 		int a;
@@ -474,8 +515,11 @@ int main(){
 	allias_map["$PS1"]=myps_u;
 	allias_map["$PWD"]=pwd;
 	allias_map["~"]=myhome;
+	//char script_path[20]="xdg-open";
+	//allias_map["open"]=script_path;
+	//allias_map["open"]="xdg-open";
 	int script_fd=-987; // file discriptor for scripting file. and its default value.
-	vector<string> his;
+	//vector<string> his;
 	int index=0;
 	bool first_time=false;
 	char input_buffer[1024];
@@ -501,7 +545,7 @@ int main(){
 			a=get_key();
 			//printf("the value of a recorded is %d\n",a);
 			if(a==TAB_KEY){
-
+				
 			}else if(a==UP_KEY){//goes to previous history
 				// empty string poppin segmentation fault and key count recalibration needs to be done.
 				if(index>=0&&first_time){
@@ -558,10 +602,13 @@ int main(){
 				}
 			}else if(a==LEFT_KEY){// this needs to be handeled in detail.
 			if(key_count>0){
-				i--;
-				printf("\b");
-				key_count--;
-			}
+					printf("\b");
+					printf(" ");
+					printf("\b");
+					i--;
+					key_count--;
+					max--;
+				}
 			}else if(a==RIGHT_KEY){
 				if(i<max){
 					printf("%c",input_buffer[i]);
