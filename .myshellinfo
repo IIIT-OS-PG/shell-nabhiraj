@@ -1,4 +1,14 @@
 $
 #
 /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/home/nabhiraj:
-application extention application extention
+mp4 /usr/bin/vlc
+mkv /usr/bin/vlc
+txt /usr/bin/vim
+cpp /usr/bin/vim
+html /usr/bin/vim
+py /usr/bin/vim
+pdf /usr/bin/xreader
+jpg /usr/bin/xviewer
+png /usr/bin/xviewer
+jpeg /usr/bin/xviewer
+

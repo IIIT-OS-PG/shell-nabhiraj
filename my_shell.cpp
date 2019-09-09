@@ -40,10 +40,12 @@ char* myps_s;//will be taken from file.
 char* pwd;
 map<string,string> allias_map;
 vector<string> his;
-//vector<sting> individual_path;
 vector<string> exe_file_name;
-vector<string> local_file_name;
+map<string,string> app_info;
 int recent_fg_exit_status;
+int howmany(char* s,char c);
+char** token_machine(char* s,int* num,char t,bool flag);
+
 void fill_param(){
 	//PS for u and s and path is already written in the file.
 	//username hostname and myhome needs to be read from the system.
@@ -84,17 +86,30 @@ void fill_param(){
 	int line_number=0;	
 	while((read=getline(&line,&len,fp))!=-1){
 		//printf("retriving line %s",line);
-		if(line_number==0)
+		if(line_number==0){
 			strcpy(myps_u,line);
-		else if(line_number==1)
+		}else if(line_number==1){
 			strcpy(myps_s,line);
-		else if(line_number==2)
+		}else if(line_number==2){
 			strcpy(mypaths,line);
-		else
-			break;
-
+		}else{
+			//we need tonek method above this.
+			int nn;
+			char** temp=token_machine(line,&nn,' ',false);
+			app_info[temp[0]]=temp[1];
+			//printf("%s\n",temp[0]);
+			//printf("%s\n",temp[1]);
+			//deallocating the space
+			int i;
+			for(i=0;i<nn;i++){
+				delete temp[i];
+			}
+			delete temp;
+			//deallocation done.
+		}
 		line_number++;
 	}
+
 	fclose(fp);
 	if(line)
 		free(line);
@@ -253,31 +268,7 @@ void chr_print(char** a){
 		i++;
 	}
 }
-/*
-bool ischarpp(char** arr,char c,int n){
-	int i;
-	int j;
-	for(j=0;j<n;j++){
-		int len=strlen(arr[j]);
-		for(i=0;i<len;i++){
-			if(arr[j][i]==c){
-				return true;
-			}
-		}
-	}
-	return false;
-}
-int my_str_len(char* arr){
-	int i;
-	i=0;
-	while(arr[i]!='\0'){
-		i++;
-		//printf(" %d ",arr[i]);
-	}
-	//printf(" %d ",arr[i]);
-	printf("\n");
-	return i;
-}*/
+
 bool is_there(char* arr,char c){
 		int i;
 		int len=strlen(arr);
@@ -512,10 +503,9 @@ int main(){
 	allias_map["$$"]=spid;
 	allias_map["$0"]="newtonian_shell";
 	allias_map["$?"]="0";
-	//char script_path[20]="xdg-open";
-	//allias_map["open"]=script_path;
-	//allias_map["open"]="xdg-open";
-	//now we have to read string from all the path variables.
+	//--------------------- data stuctures for application handeling-----------------
+	 
+	//-------------------------------------------------------------------------------
 	node* my_tri=new node();
 	int num_p;
 	char** temp=token_machine(mypaths,&num_p,':',false);
@@ -741,6 +731,23 @@ int main(){
 			delete[] buf;
 		}
 		//--------- processing the token--------------------------
+
+		if(strcmp(cmd[0],"open")==0){
+			//we will have to change the cmd[0];
+			//extract the extention of cmd[1].
+			delete cmd[0];
+			int ttt;
+			char** temppp=token_machine(cmd[1],&ttt,'.',false);
+			//temppp[1];
+			delete cmd[0];
+			cmd[0]=new char[100];
+			strcpy(cmd[0],app_info[temppp[1]].c_str());
+			int lll=app_info[temppp[1]].size();
+			cmd[0][lll-1]='\0';
+			//printf("this is %s",cmd[0]);
+			//printf("cmd[1] is %s",cmd[1]);
+			//printf("the value of j is %d",j);
+		}
 		if(strcmp(cmd[0],"cd")==0){
 			my_cd(cmd);
 		}else if((j==2)&&(strcmp(cmd[0],"record")==0)&&(strcmp(cmd[1],"start")==0)){
@@ -895,7 +902,8 @@ int main(){
 				}
 				delete cmd_pipe_arr;
 			}else{
-			//	printf("no need to deal with pipe\n");
+				//printf("no need to deal with pipe\n");
+				//printing the value of cmd
 				exe_fg(cmd,input_disc,output_disc);//most normal condition
 			}
 
