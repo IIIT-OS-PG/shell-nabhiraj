@@ -736,7 +736,7 @@ int main(){
 			//we will have to change the cmd[0];
 			//extract the extention of cmd[1].
 			if(is_there(cmd[1],'.')){
-			delete cmd[0];
+			//delete cmd[0];
 			int ttt;
 			char** temppp=token_machine(cmd[1],&ttt,'.',false);
 			//temppp[1];
@@ -745,6 +745,9 @@ int main(){
 			strcpy(cmd[0],app_info[temppp[1]].c_str());
 			int lll=app_info[temppp[1]].size();
 			cmd[0][lll-1]='\0';
+			}else{
+				printf("wrong command\n");
+				continue;
 			}
 			//printf("this is %s",cmd[0]);
 			//printf("cmd[1] is %s",cmd[1]);
@@ -922,10 +925,13 @@ int main(){
 		//---------deallocatin the space-------------------------
 		//printf("deallocation old space\n");
 		int k;
+		//printf("deallocatin here\n");
+		/*
 		for(k=0;k<j;k++){
 			delete cmd[j];
 		}
 			delete cmd;
+			*/
 		//---------------------------------------------------------  
 		//int i;
 			//for(i=0;i<totalenv_len;i++){
@@ -938,6 +944,7 @@ int main(){
 			to_deloc=false;
 			//printf("deallocation bit set back\n");
 			int i;
+			printf("deallocatin here a\n");
 			for(i=0;i<totalenv_len;i++){
 				delete enev_temp[i];
 			}
