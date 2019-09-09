@@ -39,6 +39,7 @@ char* myps_s;//will be taken from file.
 char* pwd;
 map<string,string> allias_map;
 vector<string> his;
+int recent_fg_exit_status;
 void fill_param(){
 	//PS for u and s and path is already written in the file.
 	//username hostname and myhome needs to be read from the system.
@@ -158,7 +159,11 @@ int exe_fg(char* argv[],int input_fd,int output_fd){
 			}
 		}
 	}else{
-		wait(NULL);
+		wait(&recent_fg_exit_status);
+		char* ts=new char[10];
+		sprintf(ts,"%d",recent_fg_exit_status);
+		allias_map["$?"]=ts;
+		delete[] ts;
 	}
 	return 0;
 }
@@ -499,6 +504,7 @@ bool only_single(char* s,char ss){
 	}
 	return true;
 }
+
 int main(){
 
 	//handeling signals
@@ -508,6 +514,7 @@ int main(){
 	//filling the enviorment variables
 	fill_param();
 	//inserting the enviorment variabls.
+	recent_fg_exit_status=0;
 	allias_map["$PATH"]=mypaths;
 	allias_map["$HOME"]=myhome;
 	allias_map["$USER"]=myuser;
@@ -515,6 +522,12 @@ int main(){
 	allias_map["$PS1"]=myps_u;
 	allias_map["$PWD"]=pwd;
 	allias_map["~"]=myhome;
+	int my_pid=getpid();
+	char spid[10];
+	sprintf(spid, "%d",my_pid);
+	allias_map["$$"]=spid;
+	allias_map["$0"]="newtonian_shell";
+	allias_map["$?"]="0";
 	//char script_path[20]="xdg-open";
 	//allias_map["open"]=script_path;
 	//allias_map["open"]="xdg-open";
