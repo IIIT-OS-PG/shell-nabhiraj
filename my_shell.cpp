@@ -12,6 +12,7 @@
 #include<vector>  
 #include <sys/stat.h>
 #include <fcntl.h>
+#include<dirent.h>
 #include <map>
 #define UP_KEY 1001
 #define DOWN_KEY 1004
@@ -39,6 +40,9 @@ char* myps_s;//will be taken from file.
 char* pwd;
 map<string,string> allias_map;
 vector<string> his;
+//vector<sting> individual_path;
+vector<string> exe_file_name;
+vector<string> local_file_name;
 int recent_fg_exit_status;
 void fill_param(){
 	//PS for u and s and path is already written in the file.
@@ -167,62 +171,6 @@ int exe_fg(char* argv[],int input_fd,int output_fd){
 	}
 	return 0;
 }
-/*
-//lets check whether it works or not.
-int history(char* argv[],int input_fd,int output_fd,vector<string> myv){
-	pid_t p=fork();
-	if(p==0){//the code path of the child process.
-		//now learn dup first.
-		//we have to reactivate the signals here....
-		signal(SIGINT,SIG_DFL);
-		signal(SIGTSTP,SIG_DFL);
-		signal(SIGQUIT,SIG_DFL);
-		int a;
-		a=dup2(input_fd,0);
-		if(a==-1){
-			printf("error in hand fd");
-			return -1;
-		}
-		a=dup2(output_fd,1);
-		if(a==-1){
-			printf("error in hand fd 2");
-			return -1;
-		}
-		//here i will print the vector.
-		int i;
-		for(i=0;i<myv.size();i++){
-			printf("%d %s\n",i+1,myv[i].c_str());
-		}
-		exit(0);
-	}else{
-		wait(NULL);
-	}
-	return 0;
-}*/
-/*
-int exe_fgp(char* argv[],int input_fd,int output_fd){
-		int a;
-		a=dup2(0,input_fd);
-		if(a==-1){
-			printf("error in hand fd");
-			return -1;
-		}
-		dup2(1,output_fd);
-		if(a==-1){
-			printf("error in hand fd 2");
-			return -1;
-		}
-		a=execvp(*argv,argv);//this may through erro
-		if(a==-1){
-			printf("error in executing the command\n");
-			exit(1);
-			return -1;
-		}
-	
-	return 0;
-}
-*/
-
 //required to change he directory.
 int my_cd(char** p){
  	int a=chdir(p[1]);
@@ -412,55 +360,7 @@ void pipe_handel(char*** d,int l,int f_i,int f_o){
 		printf("error in deleting the file 2\n");
 	}
 }
-//exe_fgp(d[c],a[0],a[1]);
-//pipe_handel(cmd_pipe_arr,cmd_pipe_len,0,0,1,-1);
-/*
-void pipe_handel(char*** d,int l,int f_i,int f_o){
-	int** pipe_arr=new int*[l];
-	int i;
-	for(i=0;i<l;i++){
-		pipe_arr[i]=new int[2];
-		pipe(pipe_arr[i]);
-	}
-	for(i=0;i<l;i++){
-		int t=fork();
-		if(t==0){//child process
-			if(i==0){
-				dup2(0,f_i);
-				dup2(1,pipe_arr[0][1]);
-			}
-			if(i!=0&&i!=l-1){
-				dup2(0,pipe_arr[i-1][1]);
-				dup2(pipe_arr[i][0],pipe_arr[i-1][1]);
-				dup2(1,pipe_arr[i][1]);
-			}
-			if(i==l-1){
-				dup2(0,pipe_arr[i-1][1]);
-				dup2(pipe_arr[i][0],pipe_arr[i-1][1]);
-				dup2(1,f_o);
-			}
-			//closing all the other pipe
-			int j;
-			for(j=0;j<l;j++){
-				//if(j!=i){
-					close(pipe_arr[j][0]);
-					close(pipe_arr[j][1]);
-				//}
-			}
-			int a=execvp(d[i][0],d[i]);
-		}else{//parent process
 
-		}
-	}
-	for(i=0;i<l;i++){
-		wait(NULL);	
-	}
-	int j;
-	for(j=0;j<l;j++){
-		close(pipe_arr[j][0]);
-		close(pipe_arr[j][1]);
-	}
-}*/
 
 int ifcointain(char* b,char* a){//if  a is in b
 	int al=strlen(a);
@@ -505,6 +405,85 @@ bool only_single(char* s,char ss){
 	return true;
 }
 
+//----------------------------- implimentation of tri ------------------------------------------------------
+class node{
+    public:
+    node* children[256];//all ascii charecter.
+    bool is_end;
+    string till_now;
+    node(string t,bool i){
+        till_now = t;
+        is_end=i;
+        int ii;
+        for(ii=0;ii<256;ii++){
+            children[ii]=NULL;
+        }
+    }
+	node(){
+		is_end=false;
+		int ii;
+        for(ii=0;ii<256;ii++){
+            children[ii]=NULL;
+        }
+	}
+};
+void insert_tri(node* root,string key){
+    node* temp=root;
+	//temp=new node();
+    int i;
+    for(i=0;i<key.length();i++){
+		int index=key[i];
+        if(!temp->children[index]){
+            temp->children[index]=new node(key.substr(0,i+1),false);
+        }
+        temp=temp->children[index];
+    }
+    temp->is_end=true;
+}
+node* node_of_intrest(node* root,string key){
+    node* temp=root;
+    int i;
+	//printf("entering inside the loop\n");
+    for(i=0;i<key.length();i++){
+		//printf("index number %d\n",i);
+		//printf("%c\n",key[i]);
+        int index=key[i];
+		//printf("the valu of index is %c\n",index);
+        if(!temp->children[index]){
+			//printf("insde the if condition\n");
+            return NULL;
+        }else{
+			//printf("inside the elese condition\n");
+            temp=temp->children[index];
+        }
+    }
+    return temp;
+}
+void print_all(node* root){
+    int i;
+    for(i=0;i<256;i++){
+        if(root->children[i]!=NULL){
+            if(root->children[i]->is_end){
+                printf("%s\n",root->children[i]->till_now.c_str());
+            }
+           // printf("calling another print all\n");
+            print_all(root->children[i]);
+        }
+    }
+}
+void print_matching(node* root,string s){//this is the mehod which will be called in the main.
+	//printf("control entring\n");
+    node* t=node_of_intrest(root,s);
+	//printf("spidrman\n");
+    if(t!=NULL){
+		//printf("control entering in and not null\n");
+        print_all(t);
+	}else{
+		//printf("control not entering because null\n");
+	}
+}
+//----------------------------------------------------------------------------------------------------------------------------------
+
 int main(){
 
 	//handeling signals
@@ -515,6 +494,11 @@ int main(){
 	fill_param();
 	//inserting the enviorment variabls.
 	recent_fg_exit_status=0;
+	//store the path to the shell.
+	char* inisial_path=new char[100];
+	strcat(inisial_path,pwd);
+	strcat(inisial_path,"/newtonian_shell");
+	allias_map["$SHELL"]=inisial_path;
 	allias_map["$PATH"]=mypaths;
 	allias_map["$HOME"]=myhome;
 	allias_map["$USER"]=myuser;
@@ -531,18 +515,38 @@ int main(){
 	//char script_path[20]="xdg-open";
 	//allias_map["open"]=script_path;
 	//allias_map["open"]="xdg-open";
+	//now we have to read string from all the path variables.
+	node* my_tri=new node();
+	int num_p;
+	char** temp=token_machine(mypaths,&num_p,':',false);
+	int i;
+	for(i=0;i<num_p;i++){
+		struct dirent* d;
+		DIR* dr=opendir(temp[i]);
+		if(dr!=NULL){
+			while((d=readdir(dr))!=NULL){
+				if(d->d_type==DT_REG)
+					exe_file_name.push_back(d->d_name);
+			}
+		}
+	}
+	//now we will insert every thing in the tri.
+
+	for(i=0;i<exe_file_name.size();i++){
+		insert_tri(my_tri,exe_file_name[i]);
+	}//all tri data inserted.
+	i=0;
 	int script_fd=-987; // file discriptor for scripting file. and its default value.
 	//vector<string> his;
 	int index=0;
 	bool first_time=false;
 	char input_buffer[1024];
 	char dup_input_buffer[1024];
-	int i;
 	for(i=0;i<1023;i++){
 		input_buffer[i]='a';
 	}
 	input_buffer[i]='\0';
-	
+	bool tri_flag=false;	
 	while(strcmp(input_buffer,"exit")!=0){
 		printf("%s ",myps_u);
 		i=0;
@@ -551,14 +555,20 @@ int main(){
 		int a;
 		int key_count=0;
 
-
+		if(tri_flag){
+			tri_flag=false;
+		}
 
 
 		while(1){//(a=get_key())!=ENTER_KEY
 			a=get_key();
 			//printf("the value of a recorded is %d\n",a);
 			if(a==TAB_KEY){
-				
+					input_buffer[i]='\0';
+					printf("\n");
+					print_matching(my_tri,input_buffer);
+					tri_flag=true;
+					break;
 			}else if(a==UP_KEY){//goes to previous history
 				// empty string poppin segmentation fault and key count recalibration needs to be done.
 				if(index>=0&&first_time){
@@ -643,7 +653,9 @@ int main(){
 		input_buffer[i]='\0';//this needs to be placed in the cache history stack.
 		//printf("is things working coorectly %s ho yes\n",input_buffer);
 
-
+		if(tri_flag){
+			continue;
+		}
 
 
 
