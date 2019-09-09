@@ -735,6 +735,7 @@ int main(){
 		if(strcmp(cmd[0],"open")==0){
 			//we will have to change the cmd[0];
 			//extract the extention of cmd[1].
+			if(is_there(cmd[1],'.')){
 			delete cmd[0];
 			int ttt;
 			char** temppp=token_machine(cmd[1],&ttt,'.',false);
@@ -744,10 +745,13 @@ int main(){
 			strcpy(cmd[0],app_info[temppp[1]].c_str());
 			int lll=app_info[temppp[1]].size();
 			cmd[0][lll-1]='\0';
+			}
 			//printf("this is %s",cmd[0]);
 			//printf("cmd[1] is %s",cmd[1]);
 			//printf("the value of j is %d",j);
 		}
+
+		
 		if(strcmp(cmd[0],"cd")==0){
 			my_cd(cmd);
 		}else if((j==2)&&(strcmp(cmd[0],"record")==0)&&(strcmp(cmd[1],"start")==0)){
